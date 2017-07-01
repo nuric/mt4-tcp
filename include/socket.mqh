@@ -125,7 +125,6 @@ int sock_accept(int listen_socket)
    if(msgsock==INVALID_SOCKET)
      {
       Print("Server: accept() error ",WSAGetLastError());
-      WSACleanup();
       return(INVALID_SOCKET);
      }
    Print("Server: accepted connection from ",inet_ntoa(from.sin_addr),", port ",htons(from.sin_port));

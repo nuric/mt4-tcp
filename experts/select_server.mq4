@@ -85,7 +85,6 @@ void OnTick()
 // Send tick updates
    string bid_string=DoubleToString(Bid,Digits);
    Print("Sending: ",Bid);
-
    for(uint i=1;i<sockets.fd_count;i++)
      {
       sock_send(sockets.fd_array[i],bid_string);

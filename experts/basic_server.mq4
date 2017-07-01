@@ -40,7 +40,6 @@ int OnInit()
 void OnDeinit(const int reason)
   {
 //---
-   sock_close(msg_socket);
    sock_close(server_socket);
    sock_cleanup();
   }

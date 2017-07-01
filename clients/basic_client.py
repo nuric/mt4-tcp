@@ -17,4 +17,6 @@ for i in range(20):
   print("Got:", data)
   sys.stdout.flush()
 
+# Get final data and gracefully close connection
+print("Got:", s.recv(BUFFER_SIZE).decode("ascii"))
 s.close()
