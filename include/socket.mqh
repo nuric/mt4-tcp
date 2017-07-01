@@ -28,7 +28,7 @@ int sock_startup()
 //+------------------------------------------------------------------+
 //| Create and bind a socket                                         |
 //+------------------------------------------------------------------+
-int socket_open(string ip_address,ushort port,int socket_type=SOCK_STREAM)
+int sock_open(string ip_address,ushort port,int socket_type=SOCK_STREAM)
   {
 // Initialise library
    if(sock_startup())
@@ -174,7 +174,22 @@ int sock_send(int msgsock,string msg)
 //+------------------------------------------------------------------+
 int sock_close(int socket)
   {
-   return closesocket(socket);
+   int r=closesocket(socket);
+   if(r)
+      Print("Server: cannot close ",socket," socket ",WSAGetLastError());
+   return r;
+  }
+//+------------------------------------------------------------------+
+//| Close all sockets in given fd_set                                |
+//+------------------------------------------------------------------+
+int sock_closefds(fd_set &set)
+  {
+   int r=0;
+   for(uint i=0;i<set.fd_count;i++)
+     {
+      r|=sock_close(set.fd_array[i]);
+     }
+   return r;
   }
 //+------------------------------------------------------------------+
 //| Cleanup the winsock library                                      |

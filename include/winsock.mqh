@@ -64,6 +64,89 @@ struct sockaddr_in
    char              sin_zero[8];
   };
 //+------------------------------------------------------------------+
+//| File Descriptor Sets                                             |
+//+------------------------------------------------------------------+
+#define FD_SETSIZE 16
+//+------------------------------------------------------------------+
+//| https://msdn.microsoft.com/en-us/library/windows/desktop/ms737873(v=vs.85).aspx
+//+------------------------------------------------------------------+
+struct fd_set
+  {
+   uint              fd_count;
+   int               fd_array[FD_SETSIZE];
+  };
+//+------------------------------------------------------------------+
+//| From fd_set remove item                                          |
+//+------------------------------------------------------------------+
+void fd_clear(int item,fd_set &set)
+  {
+// Linear search and remove by shift
+   for(uint i=0;i<set.fd_count;i++)
+     {
+      if(set.fd_array[i]==item)
+        {
+         // Shift elements
+         while(i<set.fd_count-1)
+           {
+            set.fd_array[i]=set.fd_array[i+1];
+            i++;
+           }
+         set.fd_count--;
+        }
+     }
+  }
+//+------------------------------------------------------------------+
+//| From fd_set remove item at given index                           |
+//+------------------------------------------------------------------+
+void fd_clearat(uint index,fd_set &set)
+  {
+   if(index>=set.fd_count) return;
+// Shift elements
+   while(index<set.fd_count-1)
+     {
+      set.fd_array[index]=set.fd_array[index+1];
+      index++;
+     }
+   set.fd_count--;
+  }
+//+------------------------------------------------------------------+
+//| Check if item is in fd_set                                       |
+//+------------------------------------------------------------------+
+bool fd_isset(int item,fd_set &set)
+  {
+// Linear search with return on first hit
+   for(uint i=0;i<set.fd_count;i++)
+      if(set.fd_array[i]==item) return true;
+   return false;
+  }
+//+------------------------------------------------------------------+
+//| Add item to fd_set, return false on success true on failure      |
+//+------------------------------------------------------------------+
+bool fd_add(int item,fd_set &set)
+  {
+// Return true on failure following winsock conventions
+   if(fd_isset(item, set)) return false;
+   if(set.fd_count>=FD_SETSIZE) return true;
+   set.fd_array[set.fd_count]=item;
+   set.fd_count++;
+   return false;
+  }
+//+------------------------------------------------------------------+
+//| Clear file descriptor set                                        |
+//+------------------------------------------------------------------+
+void fd_zero(fd_set &set)
+  {
+   set.fd_count=0;
+  }
+//+------------------------------------------------------------------+
+//| https://msdn.microsoft.com/en-us/library/windows/desktop/ms740560(v=vs.85).aspx
+//+------------------------------------------------------------------+
+struct timeval
+  {
+   long              tv_sec;
+   long              tv_usec;
+  };
+//+------------------------------------------------------------------+
 //| Convert IPv4 address into dotted string notation                 |
 //+------------------------------------------------------------------+
 string inet_ntoa(int addr)
@@ -85,6 +168,7 @@ int WSAGetLastError();
 int socket(int af,int type,int protocol);
 int bind(int socket,sockaddr_in &address,int address_len);
 int listen(int socket,int backlog);
+int select(int nfds,fd_set &readfds,int writefds,int exceptfds,timeval &timeout);
 int connect(int socket,sockaddr_in &address,int address_len);
 int accept(int socket,sockaddr_in &address,int &address_len[]);
 int send(int socket,uchar &buffer[],int length,int flags);
