@@ -96,20 +96,6 @@ void fd_clear(int item,fd_set &set)
      }
   }
 //+------------------------------------------------------------------+
-//| From fd_set remove item at given index                           |
-//+------------------------------------------------------------------+
-void fd_clearat(uint index,fd_set &set)
-  {
-   if(index>=set.fd_count) return;
-// Shift elements
-   while(index<set.fd_count-1)
-     {
-      set.fd_array[index]=set.fd_array[index+1];
-      index++;
-     }
-   set.fd_count--;
-  }
-//+------------------------------------------------------------------+
 //| Check if item is in fd_set                                       |
 //+------------------------------------------------------------------+
 bool fd_isset(int item,fd_set &set)

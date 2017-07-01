@@ -16,7 +16,6 @@ input string server_ip="0.0.0.0";
 int server_socket=INVALID_SOCKET;
 fd_set sockets;
 timeval timeout={2,0}; // 2 seconds
-int maxsocket=0;
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
 //+------------------------------------------------------------------+
@@ -34,7 +33,6 @@ int OnInit()
       return(INIT_FAILED);
    fd_zero(sockets);
    fd_add(server_socket,sockets);
-   maxsocket=server_socket;
 //---
    return(INIT_SUCCEEDED);
   }
@@ -44,8 +42,7 @@ int OnInit()
 void OnDeinit(const int reason)
   {
 //---
-//sock_closefds(sockets);
-   sock_close(server_socket);
+   sock_closefds(sockets);
    sock_cleanup();
   }
 //+------------------------------------------------------------------+
@@ -55,7 +52,9 @@ void OnTick()
   {
 //---
    fd_set readsockets=sockets;
-   if(select(maxsocket+1,readsockets,NULL,NULL,timeout)==SOCKET_ERROR)
+// nfds parameter ignored, just passing 1
+// https://msdn.microsoft.com/en-us/library/windows/desktop/ms740141(v=vs.85).aspx
+   if(select(1,readsockets,NULL,NULL,timeout)==SOCKET_ERROR)
      {
       Print("Server: select error ",WSAGetLastError());
       return;
@@ -76,7 +75,7 @@ void OnTick()
          string resp=sock_receive(readsockets.fd_array[i]);
          if(StringLen(resp)==0)
            {
-            fd_clearat(i,sockets);
+            fd_clear(readsockets.fd_array[i],sockets);
             Print("Client closed connection.");
            }
          Print("Received: ",resp);
