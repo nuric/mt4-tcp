@@ -1,5 +1,5 @@
-# Exclude swap files
+# Ignore generated files 
 *.swp
-
-# Exclude build outputs
 *.ex4
+*.pyc
+__pycache__
