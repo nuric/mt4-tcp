@@ -39,7 +39,7 @@ move() {
 
 # Sync MT4 expert changes back to repo
 sync() {
-  echo "Syncing experts and include folders"
+  echo "Syncing folders"
   cp -u experts/*.mq4 $DDIR/MQL4/Experts/
   for f in experts/*.mq4; do
     cp -u $DDIR/MQL4/Experts/`basename $f` experts/
@@ -47,6 +47,10 @@ sync() {
   cp -u include/*.mqh $DDIR/MQL4/Include/
   for f in include/*.mqh; do
     cp -u $DDIR/MQL4/Include/`basename $f` include/
+  done
+  cp -u libs/*.mq4 $DDIR/MQL4/Libraries/
+  for f in libs/*.mq4; do
+    cp -u $DDIR/MQL4/Libraries/`basename $f` libs/
   done
 }
 
