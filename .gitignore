@@ -1,0 +1,5 @@
+# Exclude swap files
+*.swp
+
+# Exclude build outputs
+*.ex4
