@@ -13,45 +13,47 @@ class Expert(object):
     self.port = port
     self.buffer_size = 1024
     self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    self.socketf = None
 
   def connect(self):
     """Try to connect to the server."""
     log.info("Connecting to %s", (self.ip_address, self.port))
     self.socket.connect((self.ip_address, self.port))
+    self.socketf = self.socket.makefile()
 
   def talk(self, msg):
     """Exchange message in a blocking manner."""
     self.socket.send(bytes(msg, "ascii"))
-    return self.socket.recv(self.buffer_size) \
-               .decode("ascii").rstrip(' \t\r\n\0')
+    resp = self.socketf.readline().strip('\0\n')
+    while not resp or resp[0] != msg[0]:
+      log.debug("Waiting on correct answer for %s", msg)
+      resp = self.socketf.readline().strip('\0\n')
+    return resp
 
   def close(self, ticket):
     """Close the given order ticket."""
     log.info("Closing order: %s", ticket)
     cmd = "C "+str(ticket)
-    return bool(int(self.talk(cmd)))
+    return bool(int(self.talk(cmd).split()[1]))
 
   def buy(self):
     """Send a buy command to the server get order ticket."""
     log.info("Buying")
-    return int(self.talk("B"))
+    return int(self.talk("B").split()[1])
 
   def sell(self):
     """Send a sell command to the server get order ticket."""
     log.info("Selling")
-    return int(self.talk("S"))
+    return int(self.talk("S").split()[1])
 
   def run(self):
     """Start processing updates forever."""
     self.connect()
     log.info("Starting update loop.")
-    while True:
-      try:
-        update = self.socket.recv(self.buffer_size) \
-                     .decode("ascii").rstrip(' \t\r\n\0')
-        self.ontick(update)
-      except(KeyboardInterrupt, EOFError, SystemExit):
-        break
+    for line in self.socketf:
+      # Expecting <tick> update
+      update = float(line.strip('\0\n'))
+      self.ontick(update)
     self.socket.close()
 
   def ontick(self, update):

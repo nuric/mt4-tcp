@@ -16,7 +16,7 @@ input ushort server_port=7777;
 input string server_ip="0.0.0.0";
 int server_socket=INVALID_SOCKET;
 fd_set sockets;
-timeval timeout={2,0}; // 2 seconds
+timeval timeout={0,100}; // 100 microseconds
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
 //+------------------------------------------------------------------+
@@ -59,16 +59,16 @@ void handle(string request,int client_socket)
    string cmds[];
    int argc=StringSplit(request,' ',cmds);
    if(argc<=0) return; // Nothing to process
-   string r="U"; // Unknown command
+   string r="U\n"; // Unknown command
    switch(StringGetChar(cmds[0],0))
      {
       case 'C':
-         r=CloseOrder(StrToInteger(cmds[1])) ? "1" : "0";
+         r="C "+(CloseOrder(StrToInteger(cmds[1])) ? "1" : "0")+"\n";
          break;
       case 'B':
-         r=IntegerToString(Buy()); break;
+         r="B "+IntegerToString(Buy())+"\n"; break;
       case 'S':
-         r=IntegerToString(Sell()); break;
+         r="S "+IntegerToString(Sell())+"\n"; break;
       default:
          Print("Unknown command: ",request); break;
      }
@@ -80,34 +80,28 @@ void handle(string request,int client_socket)
 void OnTick()
   {
    fd_set readsockets=sockets;
-// Loop to proces multiple commands, could leave it at one command per tick
-// this can starve other clients if too many commands are sent
-   while(readsockets.fd_count>0) 
+// nfds parameter ignored, just passing 1
+// https://msdn.microsoft.com/en-us/library/windows/desktop/ms740141(v=vs.85).aspx
+   if(select(1,readsockets,NULL,NULL,timeout)==SOCKET_ERROR)
      {
-      // nfds parameter ignored, just passing 1
-      // https://msdn.microsoft.com/en-us/library/windows/desktop/ms740141(v=vs.85).aspx
-      if(select(1,readsockets,NULL,NULL,timeout)==SOCKET_ERROR)
+      Print("Server: select error ",WSAGetLastError());
+      return;
+     }
+// Process incoming requests
+   for(uint i=0;i<readsockets.fd_count;i++)
+     {
+      if(readsockets.fd_array[i]==server_socket)
         {
-         Print("Server: select error ",WSAGetLastError());
-         return;
+         // Accept new connection
+         int msg_socket= sock_accept(server_socket);
+         if(msg_socket!=INVALID_SOCKET)
+            fd_add(msg_socket,sockets);
         }
-      // Process incoming requests
-      for(uint i=0;i<readsockets.fd_count;i++)
-        {
-         if(readsockets.fd_array[i]==server_socket)
-           {
-            // Accept new connection
-            int msg_socket= sock_accept(server_socket);
-            if(msg_socket!=INVALID_SOCKET)
-               fd_add(msg_socket,sockets);
-           }
-         else
-            handle(sock_receive(readsockets.fd_array[i]),readsockets.fd_array[i]);
-        }
+      else
+         handle(sock_receive(readsockets.fd_array[i]),readsockets.fd_array[i]);
      }
 // Send tick updates
-   string bid_string=DoubleToString(Bid,Digits);
-   Print("Sending: ",Bid);
+   string bid_string=DoubleToString(Bid,Digits)+"\n";
 // Skip first socket that is server_socket
    for(uint i=1;i<sockets.fd_count;i++)
       sock_send(sockets.fd_array[i],bid_string);
