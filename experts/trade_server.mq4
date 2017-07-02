@@ -59,7 +59,7 @@ void handle(string request,int client_socket)
    string cmds[];
    int argc=StringSplit(request,' ',cmds);
    if(argc<=0) return; // Nothing to process
-   string r = "U"; // Unknown command
+   string r="U"; // Unknown command
    switch(StringGetChar(cmds[0],0))
      {
       case 'C':
@@ -80,25 +80,30 @@ void handle(string request,int client_socket)
 void OnTick()
   {
    fd_set readsockets=sockets;
-// nfds parameter ignored, just passing 1
-// https://msdn.microsoft.com/en-us/library/windows/desktop/ms740141(v=vs.85).aspx
-   if(select(1,readsockets,NULL,NULL,timeout)==SOCKET_ERROR)
+// Loop to proces multiple commands, could leave it at one command per tick
+// this can starve other clients if too many commands are sent
+   while(readsockets.fd_count>0) 
      {
-      Print("Server: select error ",WSAGetLastError());
-      return;
-     }
-// Process incoming requests
-   for(uint i=0;i<readsockets.fd_count;i++)
-     {
-      if(readsockets.fd_array[i]==server_socket)
+      // nfds parameter ignored, just passing 1
+      // https://msdn.microsoft.com/en-us/library/windows/desktop/ms740141(v=vs.85).aspx
+      if(select(1,readsockets,NULL,NULL,timeout)==SOCKET_ERROR)
         {
-         // Accept new connection
-         int msg_socket= sock_accept(server_socket);
-         if(msg_socket!=INVALID_SOCKET)
-            fd_add(msg_socket,sockets);
+         Print("Server: select error ",WSAGetLastError());
+         return;
         }
-      else
-         handle(sock_receive(readsockets.fd_array[i]),readsockets.fd_array[i]);
+      // Process incoming requests
+      for(uint i=0;i<readsockets.fd_count;i++)
+        {
+         if(readsockets.fd_array[i]==server_socket)
+           {
+            // Accept new connection
+            int msg_socket= sock_accept(server_socket);
+            if(msg_socket!=INVALID_SOCKET)
+               fd_add(msg_socket,sockets);
+           }
+         else
+            handle(sock_receive(readsockets.fd_array[i]),readsockets.fd_array[i]);
+        }
      }
 // Send tick updates
    string bid_string=DoubleToString(Bid,Digits);

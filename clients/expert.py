@@ -50,7 +50,6 @@ class Expert(object):
         update = self.socket.recv(self.buffer_size) \
                      .decode("ascii").rstrip(' \t\r\n\0')
         self.ontick(update)
-        sys.stdout.flush()
       except(KeyboardInterrupt, EOFError, SystemExit):
         break
     self.socket.close()
