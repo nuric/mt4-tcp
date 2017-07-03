@@ -6,7 +6,7 @@
 #property copyright "nuric"
 #property link      "https://github.com/nuric/mt4-tcp"
 #property version   "1.00"
-#property description "Select trade server that pushes tick data."
+#property description "Select trade server that pushes bar data."
 #property strict
 
 #include <socket.mqh>
@@ -100,10 +100,11 @@ void OnTick()
       else
          handle(sock_receive(readsockets.fd_array[i]),readsockets.fd_array[i]);
      }
-// Send tick updates
-   string bid_string=DoubleToString(Bid,Digits)+"\n";
+// Send bar updates
+   if(Volume[0]>1) return;
+   string bar_string=StringFormat("%f %f %f %f %u %u\n", Open[1], Close[1], High[1], Low[1], Volume[1], TimeSeconds(Time[1]));
 // Skip first socket that is server_socket
    for(uint i=1;i<sockets.fd_count;i++)
-      sock_send(sockets.fd_array[i],bid_string);
+      sock_send(sockets.fd_array[i],bar_string);
   }
 //+------------------------------------------------------------------+

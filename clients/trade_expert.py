@@ -5,7 +5,7 @@ from expert import Expert
 
 class MACDExpert(Expert):
   """An example simple trade expert."""
-  def __init__(self, ip_address, port, short_period=120, long_period=260):
+  def __init__(self, ip_address, port, short_period=12, long_period=26):
     super().__init__(ip_address, port)
     self.past_short= deque(maxlen=short_period)
     self.past_long= deque(maxlen=long_period)
@@ -14,8 +14,9 @@ class MACDExpert(Expert):
 
   def ontick(self, update):
     """MACD style moving average logic."""
-    self.past_short.appendleft(update)
-    self.past_long.appendleft(update)
+    o, c, h, l, v, t = update.split()
+    self.past_short.appendleft(float(c))
+    self.past_long.appendleft(float(c))
     # Calculate averages
     short_avg = sum(self.past_short)/len(self.past_short)
     long_avg = sum(self.past_long)/len(self.past_long)

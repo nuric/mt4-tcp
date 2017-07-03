@@ -51,9 +51,12 @@ class Expert(object):
     self.connect()
     log.info("Starting update loop.")
     for line in self.socketf:
-      # Expecting <tick> update
-      update = float(line.strip('\0\n'))
+      # Expecting some <tick> update
+      update = line.strip('\0\n')
+      if not update:
+        break
       self.ontick(update)
+    log.info("Got empty update, closing connection.")
     self.socket.close()
 
   def ontick(self, update):
