@@ -4,6 +4,8 @@ Winsock bindings for [MetaTrader 4](http://www.metatrader4.com/en) platform to c
 ## Usage
 Example servers are contained within the **experts/** folder which run as servers when loaded into MT4. There are also examples for clients that connect to the server under the **clients/** folder. The experts can be modified to stream any data and the connection is bidirectional over TCP.
 
+The best way is to create a expert server that streams the data you require and executes the commands your client will require. There is **no fixed protocol** because every client might need different data.
+
 We recommend installing the git client on Windows for running the bash scripts. On Linux **wine** is required to run the MT4 terminal. You can mix platforms and run MT4 on Windows and clients elsewhere over the network.
 
 The experts also run for backtesting but create a lot of networking. It is best to backtest locally so the network is not flooded.
@@ -14,6 +16,7 @@ This project is **highly experimental**.  It is aimed to be a microframework for
 ### Folder Structure
 - **include/** contains the socket library functions.
 - **experts/** contain different example servers built using the library.
+- **clients/** contain example python scripts that connect to the servers.
 - **config/** contains configuration for experts for backtesting
 
 ## FAQ

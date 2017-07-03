@@ -12,7 +12,7 @@ class MACDExpert(Expert):
     self.ticket = -1
     self.order_type = None
 
-  def ontick(self, update):
+  def onupdate(self, update):
     """MACD style moving average logic."""
     o, c, h, l, v, t = update.split()
     self.past_short.appendleft(float(c))

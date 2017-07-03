@@ -55,10 +55,10 @@ class Expert(object):
       update = line.strip('\0\n')
       if not update:
         break
-      self.ontick(update)
+      self.onupdate(update)
     log.info("Got empty update, closing connection.")
     self.socket.close()
 
-  def ontick(self, update):
+  def onupdate(self, update):
     """Process update from server."""
-    raise NotImplementedError("Tick on base Expert.")
+    raise NotImplementedError("Update on base Expert.")
