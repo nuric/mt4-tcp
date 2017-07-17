@@ -102,7 +102,7 @@ void OnTick()
      }
 // Send bar updates
    if(Volume[0]>1) return;
-   string bar_string=StringFormat("%f %f %f %f %u %u\n", Open[1], Close[1], High[1], Low[1], Volume[1], TimeSeconds(Time[1]));
+   string bar_string=StringFormat("%u;%.5f;%.5f;%.5f;%.5f;%u\n", TimeSeconds(Time[1]), Open[1], High[1], Low[1], Close[1], Volume[1]);
 // Skip first socket that is server_socket
    for(uint i=1;i<sockets.fd_count;i++)
       sock_send(sockets.fd_array[i],bar_string);
