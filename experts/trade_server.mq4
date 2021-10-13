@@ -62,13 +62,19 @@ void handle(string request,int client_socket)
    string r="U\n"; // Unknown command
    switch(StringGetChar(cmds[0],0))
      {
+      case 'A':
+         r="A "+(GetAvailableInstruments(StrToInteger(cmds[1]) ? true : false))+"\n";
+         break;
+      case 'T':
+         r="T "+(GetLastTick(cmds[1]))+"\n";
+         break;
       case 'C':
          r="C "+(CloseOrder(StrToInteger(cmds[1])) ? "1" : "0")+"\n";
          break;
       case 'B':
-         r="B "+IntegerToString(Buy())+"\n"; break;
+         r="B "+IntegerToString(Buy(cmds[1]))+"\n"; break;
       case 'S':
-         r="S "+IntegerToString(Sell())+"\n"; break;
+         r="S "+IntegerToString(Sell(cmds[1]))+"\n"; break;
       default:
          Print("Unknown command: ",request); break;
      }
