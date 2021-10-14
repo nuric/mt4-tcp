@@ -60,13 +60,35 @@ void handle(string request,int client_socket)
    int argc=StringSplit(request,' ',cmds);
    if(argc<=0) return; // Nothing to process
    string r="U\n"; // Unknown command
+
+   string trade_symbol = "";
+   int trade_command = -1;
+   double trade_lots = 0.00;
+   double trade_price = 0.00;
+   double trade_stoploss = 0.00;
+   double trade_takeprofit = 0.00;
+   string trade_comment = "";
+
    switch(StringGetChar(cmds[0],0))
      {
       case 'A':
          r="A "+(GetAvailableInstruments(StrToInteger(cmds[1]) ? true : false))+"\n";
          break;
       case 'T':
-         r="T "+(GetLastTick(cmds[1]))+"\n";
+         trade_symbol = cmds[1];
+         trade_command = StringToInteger(cmds[2]);
+         trade_lots = StringToDouble(cmds[3]);
+         trade_price = StrToDouble(cmds[4]);
+         trade_stoploss = StringToDouble(cmds[5]);
+         trade_takeprofit = StringToDouble(cmds[6]);
+         trade_comment = cmds[7];
+         
+         r="T "+(IntegerToString(SendTrade(trade_symbol,trade_command,trade_lots,trade_price,trade_stoploss,trade_takeprofit,trade_comment)))+"\n";
+         break;
+      case 'K':
+         trade_symbol = cmds[1];
+
+         r="K "+(GetLastTick(trade_symbol))+"\n";
          break;
       case 'C':
          r="C "+(CloseOrder(StrToInteger(cmds[1])) ? "1" : "0")+"\n";

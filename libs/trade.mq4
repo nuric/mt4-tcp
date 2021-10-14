@@ -10,28 +10,51 @@
 //+ 1.01      Added symbol as a parameter                            +
 //+           Added new methods: GetAvailableInstruments             +
 //+           and GetLastTick                                        +
+//+ 1.20       Added symbol parameter for Buy and Sell methods       +
+//+ 1.21       Implemented GetAvailableInstruments                   +
+//+ 1.22       Add GetLastTick                                       +
+//+ 1.23       Add SendTrade                                         +
 //+                                                                  +
 //+                                                                  +
 //+------------------------------------------------------------------+
 #property library
 #property copyright "nuric"
 #property link      "https://github.com/nuric/mt4-tcp"
-#property version   "1.00"
+#property version   "1.23"
 #property strict
+#include <JAson.mqh>
+
+//+------------------------------------------------------------------+
+//+ Send Trade                                                       +
+//+------------------------------------------------------------------+
+int SendTrade(string symbol,int type,double lots,double price,double stoploss,double takeprofit,string comment) export
+{
+   if(!IsTradeAllowed()) return -1;
+   return OrderSend(symbol,type,lots,price,0,stoploss,takeprofit,comment);
+}
+
 //+------------------------------------------------------------------+
 //| Get Last Tick                                                    |
 //+------------------------------------------------------------------+
 string GetLastTick(string symbol) export
 {
-   MqlTick last_tick; 
-   
-   string item = "";
-
-   if(SymbolInfoTick(symbol,last_tick)) 
-   { 
-      item = StringConcatenate("{\"symbol\":\"",symbol,"\",\"time\":\"",last_tick.time,"\",\"bid\":\"",last_tick.bid,"\"ask\":\"",last_tick.ask,"\",\"volume\":\"",last_tick.volume,"\"}");
-   } 
-   return item;
+      MqlTick last_tick; 
+      
+      CJAVal msg;
+      
+      //--- 
+      if(SymbolInfoTick(symbol,last_tick)) 
+      { 
+         msg["symbol"] = symbol;
+         msg["time"] =  TimeToString(last_tick.time);
+         msg["bid"] = DoubleToString(last_tick.bid);
+         msg["ask"] = DoubleToString(last_tick.ask);
+         msg["volume"] = DoubleToString(last_tick.volume);
+         return msg.Serialize();
+      } 
+      
+      msg["error"] = GetLastError();
+      return msg.Serialize();
 }
 
 //+------------------------------------------------------------------+
@@ -40,15 +63,14 @@ string GetLastTick(string symbol) export
 string GetAvailableInstruments(bool inMarketWatch=true) export
 {
    int count = SymbolsTotal(inMarketWatch);
-   string symbols[];
-   ArrayResize(symbols,count);
+
+   CJAVal msg;
       
-   string json = "{\"symbols\":[";
    for (int i=0; i < count; i++) {
-        string item = StringConcatenate("{\"symbol\":\"",SymbolName(i,false),"\"},");
-       json = StringConcatenate(json,item);
+      msg[i] = SymbolName(i,inMarketWatch);
    }
-   return StringConcatenate(json,"]}");
+
+   return msg.Serialize();
 }
 //+------------------------------------------------------------------+
 //| Close given order ticket                                         |

@@ -15,6 +15,7 @@
 //| EX4 imports                                                      |
 //+------------------------------------------------------------------+
  #import "trade.ex4"
+   int SendTrade(string symbol,int type,double lots,double price,double stoploss,double takeprofit,string comment);
    string GetLastTick(string symbol);
    string GetAvailableInstruments(bool inMarketWatch);
    bool CloseOrder(int ticket);
