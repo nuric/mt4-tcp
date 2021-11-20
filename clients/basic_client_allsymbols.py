@@ -12,13 +12,7 @@ s.connect((TCP_IP, TCP_PORT))
 
 # Get all supported symbols (aka instruments)
 data = s.recv(BUFFER_SIZE).decode("ascii")
-s.send("A EURUSD".encode("ascii"))
-print("Got:", data)
-sys.stdout.flush()
-
-# Get last tick for EURUSD
-data = s.recv(BUFFER_SIZE).decode("ascii")
-s.send("A EURUSD".encode("ascii"))
+s.send("A 1".encode("ascii"))
 print("Got:", data)
 sys.stdout.flush()
 
